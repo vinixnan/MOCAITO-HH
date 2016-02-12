@@ -1,0 +1,107 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package jmetal.hyperheuristics;
+
+import jmetal.qualityIndicator.QualityIndicator;
+import jmetal.util.Distance;
+import jmetal.util.JMException;
+
+/**
+ *
+ * @author vinicius
+ */
+public abstract class AlgorithmHH extends Algorithm {
+    
+    protected String methodName;
+    protected SolutionSet population;
+    protected SolutionSet archive;
+    protected Operator mutationOperator;
+    protected Operator crossoverOperator;
+    protected Operator selectionOperator;
+    protected int archiveSize;
+    protected int populationSize;
+    protected int maxEvaluations;
+    protected int evaluations;
+    protected int requiredEvaluations;
+    protected Distance distance;
+    protected QualityIndicator indicators;
+
+    /**
+     * Configure and init population.
+     *
+     * @throws jmetal.util.JMException
+     * @throws java.lang.ClassNotFoundException
+     */
+    public abstract void executeMethod() throws JMException, ClassNotFoundException;
+
+    /**
+     * Configure and init population.
+     */
+    public abstract void initPopulation();
+    
+    
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public void setPopulation(SolutionSet population) {
+        this.population = population;
+        //evaluations = 0;
+        //requiredEvaluations = 0;
+
+    }
+
+    public SolutionSet getPopulation() {
+        return population;
+    }
+    
+    public int getPopulationSize() {
+        return populationSize;
+    }
+
+    public SolutionSet getArchive() {
+        return archive;
+    }
+
+    public void setArchive(SolutionSet archive) {
+        this.archive = archive;
+    }
+
+    public int getArchiveSize() {
+        return archiveSize;
+    }
+
+    public void setArchiveSize(int archiveSize) {
+        this.archiveSize = archiveSize;
+    }
+
+    public int getEvaluations() {
+        return evaluations;
+    }
+
+    public void setEvaluations(int evaluations) {
+        this.evaluations = evaluations;
+    }
+
+    public int getRequiredEvaluations() {
+        return requiredEvaluations;
+    }
+
+    public void setRequiredEvaluations(int requiredEvaluations) {
+        this.requiredEvaluations = requiredEvaluations;
+    }
+
+    public void setPopulationSize(int populationSize) {
+        this.populationSize = populationSize;
+    }
+    
+    
+}

@@ -1,0 +1,63 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package jmetal.hyperheuristics;
+
+/**
+ *
+ * @author vinicius
+ */
+public class AlgorithmRanking implements Comparable<AlgorithmRanking> {
+
+    private MetricHandler handler;
+    private AlgorithmHH alg;
+    private double value;
+    private int ranking;
+    private int numObj;
+
+    public AlgorithmRanking(MetricHandler metric, AlgorithmHH alg) {
+        this.handler = metric;
+        this.alg = alg;
+    }
+
+    public void calcMetric() {
+        if (this.handler != null) {
+            this.value = this.handler.calculate(alg.getPopulation(), this.numObj);
+        }
+        this.value = 0;
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+
+    public int getRanking() {
+        return ranking;
+    }
+
+    public void setRanking(int ranking) {
+        this.ranking = ranking;
+    }
+
+    public AlgorithmHH getAlg() {
+        return alg;
+    }
+    
+    
+
+    @Override
+    public int compareTo(AlgorithmRanking o) {
+
+        if (this.getValue() > o.getValue()) {
+            return 1;
+        }
+        return 0;
+    }
+
+}

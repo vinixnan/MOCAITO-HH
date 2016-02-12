@@ -1,0 +1,164 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package jmetal.hyperheuristics;
+
+import java.util.import jmetal.base.Operator;
+import jmetal.base.SolutionSet;
+ArrayList;
+import jmetal.base.operator.crossover.CrossoverFactory;
+import jmetal.base.operator.mutation.MutationFactory;
+import jmetal.base.operator.selection.SelectionFactory;
+import jmetal.metaheuristics.ibea.IBEA;
+import jmetal.metaheuristics.nsgaII.NSGAII;
+import jmetal.metaheuristics.spea2.SPEA2;
+import jmetal.problems.CITO_CAITO;
+import jmetal.problems.Combined2Objetives;
+import jmetal.qualityIndicator.R2;
+import jmetal.qualityIndicator.fastHypervolume.FastHypervolume;
+import jmetal.util.JMException;
+import jmetal.util.Ranking;
+
+/**
+ *
+ * @author vinicius
+ */
+public class AlgorithmHHBuilder {
+
+    private CITO_CAITO problem;
+    private double crossoverProbability;
+    private double mutationProbability;
+    private int populationSize;
+    private int maxEvaluations;
+    private int archiveSize;
+    private ArrayList<AlgorithmHH> algs;
+    private AlgorithmHH current;
+
+    public AlgorithmHHBuilder(CITO_CAITO problem, double crossoverProbability, double mutationProbability, int populationSize, int maxEvaluations, int archiveSize) {
+        this.problem = problem;
+        this.crossoverProbability = crossoverProbability;
+        this.mutationProbability = mutationProbability;
+        this.populationSize = populationSize;
+        this.maxEvaluations = maxEvaluations;
+        this.archiveSize = archiveSize;
+        this.algs = null;
+        this.current=null;
+    }
+
+    protected AlgorithmHH createIBEA() throws JMException {
+        AlgorithmHH algorithm = new IBEA(problem);
+        Operator crossover;
+        Operator mutation;
+        Operator selection;
+        // Crossover
+        crossover = CrossoverFactory.getCrossoverOperator("TwoPointsCrossover");
+        crossover.setParameter("probability", crossoverProbability);
+        // Mutation
+        mutation = MutationFactory.getMutationOperator("SwapMutation");
+        mutation.setParameter("probability", mutationProbability);
+        // Selection
+        selection = SelectionFactory.getSelectionOperator("BinaryTournament");
+        // Algorithm params
+        algorithm.setInputParameter("populationSize", populationSize);
+        algorithm.setInputParameter("maxEvaluations", maxEvaluations);
+        algorithm.setInputParameter("archiveSize", archiveSize);
+        algorithm.addOperator("crossover", crossover);
+        algorithm.addOperator("mutation", mutation);
+        algorithm.addOperator("selection", selection);
+        algorithm.initPopulation();
+        return algorithm;
+    }
+
+    protected AlgorithmHH createNSGAII() throws JMException {
+
+        Operator crossover;
+        Operator mutation;
+        Operator selection;
+        // Crossover
+        crossover = CrossoverFactory.getCrossoverOperator("TwoPointsCrossover");
+        crossover.setParameter("probability", crossoverProbability);
+        // Mutation
+        mutation = MutationFactory.getMutationOperator("SwapMutation");
+        mutation.setParameter("probability", mutationProbability);
+        // Selection
+        selection = SelectionFactory.getSelectionOperator("BinaryTournament");
+        // Algorithm params
+        AlgorithmHH algorithm = new NSGAII(problem);
+        algorithm.setInputParameter("populationSize", populationSize);
+        algorithm.setInputParameter("maxEvaluations", maxEvaluations);
+        algorithm.addOperator("crossover", crossover);
+        algorithm.addOperator("mutation", mutation);
+        algorithm.addOperator("selection", selection);
+        algorithm.initPopulation();
+        return (AlgorithmHH) algorithm;
+    }
+
+    protected AlgorithmHH createSPEA2() throws JMException {
+        AlgorithmHH algorithm = new SPEA2(problem);
+        Operator crossover;
+        Operator mutation;
+        Operator selection;
+        // Crossover
+        crossover = CrossoverFactory.getCrossoverOperator("TwoPointsCrossover");
+        crossover.setParameter("probability", crossoverProbability);
+        // Mutation
+        mutation = MutationFactory.getMutationOperator("SwapMutation");
+        mutation.setParameter("probability", mutationProbability);
+        // Selection
+        selection = SelectionFactory.getSelectionOperator("BinaryTournament");
+        // Algorithm params
+        algorithm.setInputParameter("populationSize", populationSize);
+        algorithm.setInputParameter("maxEvaluations", maxEvaluations);
+        algorithm.setInputParameter("archiveSize", archiveSize);
+        algorithm.addOperator("crossover", crossover);
+        algorithm.addOperator("mutation", mutation);
+        algorithm.addOperator("selection", selection);
+        algorithm.initPopulation();
+        return algorithm;
+    }
+    
+    protected void trocaContexto(AlgorithmHH origem, AlgorithmHH destino) {
+        if (origem != null) {
+            SolutionSet partial = origem.getPopulation();
+            int evaluations=origem.getEvaluations();
+            int requiredEvaluations=origem.getRequiredEvaluations();
+            int populationSizeMethod=origem.getPopulationSize();
+            destino.setPopulation(partial);
+            destino.setEvaluations(evaluations);
+            destino.setRequiredEvaluations(requiredEvaluations);
+            destino.setPopulationSize(populationSizeMethod);
+        }
+    }
+
+    public AlgorithmHH selectAlg(int id) throws JMException {
+        if (this.algs == null) {
+            this.algs = new ArrayList<>();
+            this.algs.add(this.createNSGAII());
+            this.algs.add(this.createIBEA());
+            this.algs.add(this.createSPEA2());
+        }
+        if(id > this.algs.size()){
+            id=0;
+        }
+        AlgorithmHH alg=this.algs.get(id);
+        this.trocaContexto(this.current, alg);
+        this.current=alg;
+        return alg;
+    }
+    
+    public AlgorithmHH chooseAlg(long time) throws JMException {
+        if (this.current != null) {
+            Ranking ranking = new Ranking(this.current.getPopulation());
+            SolutionSet resultFront = ranking.getSubfront(0);
+            resultFront = problem.removeDominadas(resultFront);
+            resultFront = problem.removeRepetidas(resultFront);
+            FastHypervolume fh = new FastHypervolume();
+            R2 r = new R2();
+            double hypervolume=fh.computeHypervolume(resultFront);
+            double r2=r.R2(resultFront);
+        }
+        return this.selectAlg(0);
+    }
+}
