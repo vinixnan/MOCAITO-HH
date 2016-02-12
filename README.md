@@ -1,6 +1,6 @@
 MOCAITO-HH
 ========
-Project Implemented in 06/2015
+Project Implemented in 06/2015 using Java and JMetal Framework
 
 Choice function based hyper-heuristics for multi-objective optimization applied to CAITO problem
 
